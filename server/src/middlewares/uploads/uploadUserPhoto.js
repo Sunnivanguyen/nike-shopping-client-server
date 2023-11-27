@@ -25,6 +25,19 @@ exports.updateUserPhoto = async (req, res, next) => {
   if (!req.file) return next();
 
   try {
+    const deleteOldImage = async (img) => {
+      await cloudinary.uploader.destroy(img, function () {
+        console.log('image deleted successfully');
+      });
+    };
+
+    const public_id = req.body.avatar
+      .split('/')
+      .slice(7, 10)
+      .join('/')
+      .split('.')[0];
+
+    await deleteOldImage(public_id);
     const createImage = async (img) => {
       const parser = new DatauriParser();
       const base64Image = parser.format(
@@ -44,7 +57,6 @@ exports.updateUserPhoto = async (req, res, next) => {
     };
 
     const createdImage = await createImage(req.file);
-    console.log(createdImage, 'createdImage');
 
     req.file.filename = createdImage.secure_url;
     req.body.avatar = req.file.filename;
@@ -101,6 +113,19 @@ exports.updateAdminPhoto = async (req, res, next) => {
   if (!req.file) return next();
 
   try {
+    const deleteOldImage = async (img) => {
+      await cloudinary.uploader.destroy(img, function () {
+        console.log('image deleted successfully');
+      });
+    };
+
+    const public_id = req.body.avatar
+      .split('/')
+      .slice(7, 10)
+      .join('/')
+      .split('.')[0];
+
+    await deleteOldImage(public_id);
     const createImage = async (img) => {
       const parser = new DatauriParser();
       const base64Image = parser.format(

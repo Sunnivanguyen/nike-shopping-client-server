@@ -52,6 +52,10 @@ const App: React.FC = () => {
                     <Route path="order" element={<OrderStatusPage />} />
                     <Route path="nike" element={<MainComponent />}>
                       <Route
+                        path="featured/:product_code"
+                        element={<ProductDetailPage />}
+                      />
+                      <Route
                         index
                         element={<Navigate replace to="best-sellers" />}
                       />

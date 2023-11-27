@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 import IChildrenProps from "../types/ChildrenType";
 import { IOrder } from "../types/OrderType";
-import { Icart, ICartItem } from "../types/CartType";
+import { ICartItem } from "../types/CartType";
 import {
   IProduct,
   IProductDetail,
@@ -36,7 +36,6 @@ type InitialState = {
   details: IProductDetail[];
   favorites: IProduct[];
   orders: IOrder[];
-  carts: Icart[];
   cartItem: ICartItem[];
   isLoading: boolean;
   currentProduct: IProduct | object;
@@ -63,7 +62,6 @@ const initialState: InitialState = {
   details: [],
   favorites: [],
   orders: [],
-  carts: [],
   cartItem: [],
   isLoading: false,
   currentProduct: {},
@@ -95,42 +93,33 @@ function reducer(state: InitialState, action: any): any {
       return {
         ...state,
         isLoading: false,
-        products: action.payload.products,
-        images: action.payload.images,
+        products: action.payload,
       };
     case "product/loaded":
       return {
         ...state,
         isLoading: false,
-        currentProduct: action.payload.product,
-        currentSizes: action.payload.sizes,
-        currentHighlights: action.payload.highlights,
-        currentDetails: action.payload.details,
-        currentImages: action.payload.images,
-        currentImageColors: action.payload.imageColors,
+        currentProduct: action.payload,
       };
     case "unique/loaded":
       return {
         ...state,
         isLoading: false,
-        uniqueProducts: action.payload.products,
-        uniqueImages: action.payload.images,
+        uniqueProducts: action.payload,
       };
 
     case "best-seller/loaded":
       return {
         ...state,
         isLoading: false,
-        bestSellerProducts: action.payload.products,
-        bestSellerImages: action.payload.images,
+        bestSellerProducts: action.payload,
       };
 
     case "new-arrival/loaded":
       return {
         ...state,
         isLoading: false,
-        newArrivalProducts: action.payload.products,
-        newArrivalImages: action.payload.images,
+        newArrivalProducts: action.payload,
       };
     case "cartItem/added":
       return {
@@ -245,16 +234,10 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
       products,
       images,
       uniqueProducts,
-      uniqueImages,
       carts,
       orders,
       favorites,
       currentProduct,
-      currentDetails,
-      currentHighlights,
-      currentImages,
-      currentSizes,
-      currentImageColors,
       bestSellerProducts,
       bestSellerImages,
       newArrivalProducts,
@@ -268,25 +251,16 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
   ] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    fetchProducts();
     fetchUniqueProducts();
     fetchBestSellerProducts();
     fetchNewArrivalProducts();
-  }, [products.length]);
-
-  // useEffect(() => {
-  //   fetchOrders();
-  // }, []);
+  }, [products?.length]);
 
   useEffect(() => {
     if (selectedId) {
       fetchProduct(selectedId);
     }
   }, [selectedId]);
-
-  // useEffect(() => {
-  //   fetchAllCartItems(user);
-  // }, [user]);
 
   function showToast(status: string, message: string) {
     if (status === "success") {
@@ -300,12 +274,10 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     dispatch({ type: "loading" });
     try {
       const res = await axios.get(`${BASE_URL}/api/v1/products`);
+      console.log(res, "GETTING ALL PRODUCTS");
       dispatch({
         type: "products/loaded",
-        payload: {
-          products: res.data.data.products,
-          images: res.data.data.images,
-        },
+        payload: res.data.data.details,
       });
     } catch (error) {
       dispatch({
@@ -321,10 +293,7 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
       const res = await axios.get(`${BASE_URL}/api/v1/products/unique`);
       dispatch({
         type: "unique/loaded",
-        payload: {
-          products: res.data.data.products,
-          images: res.data.data.images,
-        },
+        payload: res.data.data.details,
       });
     } catch (error) {
       dispatch({
@@ -334,16 +303,41 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     }
   }
 
-  async function fetchAllCartItems(cartId) {
+  async function fetchNewArrivalProducts() {
     dispatch({ type: "loading" });
     try {
-      const res = await axios.get(`${BASE_URL}/api/v1/carts/${cartId}`);
+      const res = await axios.get(`${BASE_URL}/api/v1/products/new-arrivals`);
+      console.log(res, "GETTING ALL NEW ARRIVAL PRODUCTS");
+      dispatch({
+        type: "new-arrival/loaded",
+        payload: res.data.data.details,
+      });
+    } catch (error) {
+      dispatch({ type: "rejected", payload: "Error" });
+    }
+  }
+
+  async function fetchBestSellerProducts() {
+    dispatch({ type: "loading" });
+    try {
+      const res = await axios.get(`${BASE_URL}/api/v1/products/best-sellers`);
+      console.log(res, "GETTING ALL BEST SELLER PRODUCTS");
+      dispatch({
+        type: "best-seller/loaded",
+        payload: res.data.data.details,
+      });
+    } catch (error) {
+      dispatch({ type: "rejected", payload: "Error" });
+    }
+  }
+
+  async function fetchAllCartItems(userId: number) {
+    dispatch({ type: "loading" });
+    try {
+      const res = await axios.get(`${BASE_URL}/api/v1/users/${userId}/carts`);
       dispatch({
         type: "carts/loaded",
-        payload: {
-          products: res.data.data.products,
-          images: res.data.data.images,
-        },
+        payload: res.data.data.userCartItems,
       });
     } catch (error) {
       dispatch({
@@ -374,21 +368,15 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
   //   dispatch({ type: "product/search", payload: searchResults });
   // }
 
-  async function fetchProduct(id: string) {
+  async function fetchProduct(productCode: string) {
     dispatch({ type: "loading" });
     try {
-      const res = await axios.get(`${BASE_URL}/api/v1/products/${id}`);
-      console.log(res, "222222222222222222222");
+      const res = await axios.get(
+        `${BASE_URL}/api/v1/products//product-code/${productCode}`,
+      );
       dispatch({
         type: "product/loaded",
-        payload: {
-          product: res.data.data.product,
-          images: res.data.data.images,
-          details: res.data.data.details,
-          highlights: res.data.data.highlights,
-          sizes: res.data.data.sizes,
-          imageColors: res.data.data.imageColor,
-        },
+        payload: res.data.data,
       });
     } catch (error) {
       dispatch({
@@ -397,18 +385,6 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
       });
     }
   }
-
-  // async function fetchAllCartItems(cartId) {
-  //   try {
-  //     const res = await axios.get(`${BASE_URL}/api/v1/carts/${cartId}`);
-  //     dispatch({ type: "cartItem/loaded", payload: res.data.data.product });
-  //   } catch (error) {
-  //     dispatch({
-  //       type: "rejected",
-  //       payload: "There was an error loading users...",
-  //     });
-  //   }
-  // }
 
   async function addToCart(
     cartId: number,
@@ -478,52 +454,13 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     dispatch({ type: "order/added", payload: orders });
   }
 
-  async function fetchNewArrivalProducts() {
-    dispatch({ type: "loading" });
-    try {
-      const res = await axios.get(`${BASE_URL}/api/v1/products/new-arrivals`);
-      dispatch({
-        type: "new-arrival/loaded",
-        payload: {
-          products: res.data.data.products,
-          images: res.data.data.images,
-        },
-      });
-    } catch (error) {
-      dispatch({ type: "rejected", payload: "Error" });
-    }
-  }
-
-  async function fetchBestSellerProducts() {
-    dispatch({ type: "loading" });
-    try {
-      const res = await axios.get(`${BASE_URL}/api/v1/products/best-sellers`);
-
-      dispatch({
-        type: "best-seller/loaded",
-        payload: {
-          products: res.data.data.products,
-          images: res.data.data.images,
-        },
-      });
-    } catch (error) {
-      dispatch({ type: "rejected", payload: "Error" });
-    }
-  }
-
   return (
     <ProductsContext.Provider
       value={{
         products,
         images,
         uniqueProducts,
-        uniqueImages,
         currentProduct,
-        currentDetails,
-        currentHighlights,
-        currentImages,
-        currentSizes,
-        currentImageColors,
         isLoading,
         newArrivalProducts,
         newArrivalImages,
@@ -531,7 +468,6 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
         bestSellerImages,
         setSelectedId,
         addToCart,
-        carts,
         decreaseCart,
         deleteCart,
         favorites,
@@ -549,6 +485,7 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
         setQuery,
         quantity,
         setQuantity,
+        fetchProduct,
       }}
     >
       {children}

@@ -19,8 +19,10 @@ class AuthService {
 
       const newUser = await AuthRepository.createUser({ email, newPassword });
 
+      const { password: _, ...data } = newUser.dataValues;
+
       const responseData = {
-        newUser,
+        user: data,
       };
       return responseData;
     } catch (error) {
@@ -42,8 +44,10 @@ class AuthService {
 
       const newAdmin = await AuthRepository.createAdmin({ email, newPassword });
 
+      const { password: _, ...data } = newAdmin.dataValues;
+
       const responseData = {
-        newAdmin,
+        admin: data,
       };
       return responseData;
     } catch (error) {

@@ -1,11 +1,12 @@
 export interface IOrder {
   id: number;
-  order_code: number;
+  order_code: string;
   user_id: number;
   status: number;
   delivery_fee: number;
   comment: string;
-  order_at: string;
+  payment_method: number;
+  ordered_at: string;
   updated_at: string;
 }
 

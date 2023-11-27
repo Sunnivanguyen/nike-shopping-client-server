@@ -107,7 +107,10 @@ const AuthProvider: React.FC<IChildrenProps> = ({ children }) => {
 
     const dataLogin = { email, password };
     try {
-      const res = await axios.post(`${BASE_URL}/api/v1/users/login`, dataLogin);
+      const res = await axios.post(
+        `${BASE_URL}/api/v1/auth/user-login`,
+        dataLogin,
+      );
       dispatch({ type: "login", payload: res.data.data.user });
       showToast("success", "Log in successfully");
 
@@ -115,7 +118,7 @@ const AuthProvider: React.FC<IChildrenProps> = ({ children }) => {
         "user_id",
         JSON.stringify(res.data.data.user?.id),
       );
-      window.localStorage.setItem("token", JSON.stringify(res.data?.token));
+      window.localStorage.setItem("token", JSON.stringify(res.data.data.token));
 
       navigate("/home", { replace: true });
     } catch (error) {
@@ -159,7 +162,7 @@ const AuthProvider: React.FC<IChildrenProps> = ({ children }) => {
     const dataLogin = { email, password };
     try {
       const res = await axios.post(
-        `${BASE_URL}/api/v1/users/signup`,
+        `${BASE_URL}/api/v1/auth/user-signup`,
         dataLogin,
       );
 

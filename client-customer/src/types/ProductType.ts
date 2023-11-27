@@ -1,6 +1,7 @@
 export interface IProduct {
   id: number;
   product_code: string;
+  pre_code: string;
   product_name: string;
   product_launch_date: string;
   buy_price: number;

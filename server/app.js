@@ -25,26 +25,26 @@ const paymentRouter = require('./src/routes/paymentRoutes');
 // Start express app
 const app = express();
 
-// const AdminEntity = require('./src/entities/adminEntity');
-// const UserEntity = require('./src/entities/userEntity');
-// const AdminAddressEntity = require('./src/entities/adminAddressEntity');
-// const UserAddressEntity = require('./src/entities/userAddressEntity');
-// const FavoriteEntity = require('./src/entities/favoriteEntity');
-// const CartItemEntity = require('./src/entities/cartItemEntity');
-// const ProductEntity = require('./src/entities/productEntity');
-// const ProductReviewEntity = require('./src/entities/productReviewEntity');
-// const SizeEntity = require('./src/entities/sizeEntity');
-// const ProductSizeEntity = require('./src/entities/productSizeEntity');
-// const ProductDetailEntity = require('./src/entities/productDetailEntity');
-// const ProductHighlightEntity = require('./src/entities/productHighlightEntity');
-// const ProductImageEntity = require('./src/entities/productImageEntity');
-// const CategoryEntity = require('./src/entities/categoryEntity');
-// const OrderEntity = require('./src/entities/orderEntity');
-// const OrderDetailEntity = require('./src/entities/orderDetailEntity');
-// const OrderPaymentEntity = require('./src/entities/orderPaymentEntity');
-// const UserPaymentEntity = require('./src/entities/userPaymentEntity');
-// const PaymentMethodEntity = require('./src/entities/paymentMethodEntity');
-// const PromotionEntity = require('./src/entities/promotionEntity');
+const AdminEntity = require('./src/entities/adminEntity');
+const UserEntity = require('./src/entities/userEntity');
+const AdminAddressEntity = require('./src/entities/adminAddressEntity');
+const UserAddressEntity = require('./src/entities/userAddressEntity');
+const FavoriteEntity = require('./src/entities/favoriteEntity');
+const CartItemEntity = require('./src/entities/cartItemEntity');
+const ProductEntity = require('./src/entities/productEntity');
+const ProductReviewEntity = require('./src/entities/productReviewEntity');
+const SizeEntity = require('./src/entities/sizeEntity');
+const ProductSizeEntity = require('./src/entities/productSizeEntity');
+const ProductDetailEntity = require('./src/entities/productDetailEntity');
+const ProductHighlightEntity = require('./src/entities/productHighlightEntity');
+const ProductImageEntity = require('./src/entities/productImageEntity');
+const CategoryEntity = require('./src/entities/categoryEntity');
+const OrderEntity = require('./src/entities/orderEntity');
+const OrderDetailEntity = require('./src/entities/orderDetailEntity');
+const OrderPaymentEntity = require('./src/entities/orderPaymentEntity');
+const UserPaymentEntity = require('./src/entities/userPaymentEntity');
+const PaymentMethodEntity = require('./src/entities/paymentMethodEntity');
+const PromotionEntity = require('./src/entities/promotionEntity');
 
 // 1) GLOBAL MIDDLEWARES
 // Implement CORS
@@ -86,12 +86,12 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 //Limit requests from same API
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: 'Too many requests from this IP, please try again in an hour!',
-});
-app.use('/api', limiter);
+// const limiter = rateLimit({
+//   max: 100,
+//   windowMs: 60 * 60 * 1000,
+//   message: 'Too many requests from this IP, please try again in an hour!',
+// });
+// app.use('/api', limiter);
 
 // Body parser, reading data from body into req.body
 app.use(express.json());

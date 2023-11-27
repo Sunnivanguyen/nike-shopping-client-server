@@ -1,5 +1,4 @@
 import useProducts from "../../hooks/useProducts";
-import { IProduct } from "../../types/ProductType";
 import ProductItem from "../../components/ui/ProductItem";
 
 const NewArrivalsPage: React.FC = () => {
@@ -12,8 +11,11 @@ const NewArrivalsPage: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 xl:gap-x-8">
           {newArrivalProducts.length > 0 &&
-            newArrivalProducts.map((product: IProduct) => (
-              <ProductItem product={product} key={crypto.randomUUID()} />
+            newArrivalProducts.map((productDetail) => (
+              <ProductItem
+                productDetail={productDetail}
+                key={crypto.randomUUID()}
+              />
             ))}
         </div>
       </div>

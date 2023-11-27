@@ -5,7 +5,6 @@ const productController = require('../controllers/productController');
 const reviewController = require('../controllers/reviewController');
 
 const {
-  uploadPhotos,
   createProductPhotos,
   updateProductPhotos,
 } = require('../middlewares/uploads/uploadProductPhoto');

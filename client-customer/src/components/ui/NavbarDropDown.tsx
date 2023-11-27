@@ -23,6 +23,10 @@ const NavbarDropDown: React.FC<TProps> = ({
   const { setCurrentPage } = useRoutes();
   const { darkMode } = useTheme();
 
+  function handleClick(href: string) {
+    setCurrentPage(href);
+  }
+
   return (
     <>
       <div className="flex lg:hidden">
@@ -64,7 +68,7 @@ const NavbarDropDown: React.FC<TProps> = ({
                     <div
                       key={crypto.randomUUID()}
                       className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50"
-                      onClick={() => setCurrentPage(`${feature.href}`)}
+                      onClick={() => handleClick(feature.href)}
                     >
                       <div className="flex-auto">
                         <Link
