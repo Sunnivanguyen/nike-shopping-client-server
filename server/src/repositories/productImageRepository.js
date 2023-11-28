@@ -32,7 +32,7 @@ class ProductImageRepository {
     return updatedImage;
   }
 
-  async getProductImageColors(preCode) {
+  async getProductImageByPreCode(preCode) {
     const images = await ProductImageEntity.findAll({
       where: { image_alt: 2, product_code: { [Op.startsWith]: preCode } },
     });

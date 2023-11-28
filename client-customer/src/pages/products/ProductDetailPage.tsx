@@ -10,8 +10,11 @@ import Sizes from "../../components/ui/Sizes";
 import Button from "../../components/ui/Button";
 import Highlights from "../../components/ui/Highlights";
 import Details from "../../components/ui/Details";
-import useAuth from "../../hooks/useAuth";
+// import useAuth from "../../hooks/useAuth";
 import ImageColors from "../../components/ui/ImageColors";
+import BreadScrumbs from "../../components/ui/BreadScrumbs";
+import Prices from "../../components/ui/Prices";
+import Reviews from "../../components/ui/Reviews";
 
 const ProductDetailPage: React.FC = () => {
   const { product_code } = useParams();
@@ -19,11 +22,10 @@ const ProductDetailPage: React.FC = () => {
   const {
     currentProduct,
     isLoading,
-    setSelectedId,
-    selectedId,
     addToCart,
     addFavorite,
     fetchProduct,
+    categories,
   } = useProducts();
 
   useEffect(() => {
@@ -32,11 +34,39 @@ const ProductDetailPage: React.FC = () => {
 
   // const { user } = useAuth();
 
-  const [selectedColor, setSelectedColor] = useState(
-    currentProduct.product_color,
+  const breadScrumbs = categories?.find(
+    (cat) => cat.id === currentProduct?.product?.category_id,
   );
-  const [selectedSize, setSelectedSize] = useState();
 
+  if (breadScrumbs) {
+    breadScrumbs.href = `/products/categories/${breadScrumbs?.name}`;
+  }
+
+  let sex;
+  switch (currentProduct?.product?.sex) {
+    case 1:
+      sex = "Men";
+      break;
+    case 2:
+      sex = "Women";
+      break;
+    default:
+      "Men";
+  }
+
+  const [selectedColor, setSelectedColor] = useState(() => {
+    const images = currentProduct?.imageColors;
+    if (images?.length > 0) {
+      const image = images.find((img) => img.product_code === product_code);
+      return image;
+    }
+  });
+  const [selectedSize, setSelectedSize] = useState(() => {
+    const sizes = currentProduct?.sizes;
+    if (sizes?.length > 0) {
+      return sizes[0];
+    }
+  });
   function handleSubmit(e) {
     e.preventDefault();
 
@@ -50,12 +80,25 @@ const ProductDetailPage: React.FC = () => {
     // addFavorite(selectedId);
   }
 
+  let avgReviews = 0;
+
+  if (
+    currentProduct?.reviews &&
+    currentProduct?.total &&
+    currentProduct.reviews.length > 0
+  ) {
+    avgReviews = currentProduct.total / currentProduct.reviews.length;
+  }
+
   return (
     <div className="bg-white text-dark-70 dark:bg-dark-100 dark:text-white">
+      {isLoading && <Spinner />}
       {!isLoading && currentProduct ? (
         <div className="pt-6">
           {/* BreadScrumb */}
-          {/* <BreadScrumbs breadcrumbs={breadcrumbs} name={name} /> */}
+          {breadScrumbs && sex && (
+            <BreadScrumbs breadScrumbs={breadScrumbs} sex={sex} />
+          )}
           {/* Image gallery */}
           <ImageGallery images={currentProduct.images} />
           {/* Product info */}
@@ -69,25 +112,29 @@ const ProductDetailPage: React.FC = () => {
             {/* Options */}
             <div className="mt-4 lg:row-span-3 lg:mt-0">
               <h2 className="sr-only">Product information</h2>
-              {/* <Prices price={price} discount={discount} /> */}
+              <Prices price={currentProduct?.product?.buy_price} discount={0} />
 
               {/* Reviews */}
-              {/* <Reviews reviews={reviews} /> */}
+              <Reviews value={avgReviews} />
 
               <form className="mt-10">
                 {/* Colors */}
-                {/* <ImageColors
-                  selectedColor={selectedColor}
-                  setSelectedColor={setSelectedColor}
-                  images={currentImageColors}
-                /> */}
+                {currentProduct?.imageColors?.length > 0 && (
+                  <ImageColors
+                    selectedColor={selectedColor}
+                    setSelectedColor={setSelectedColor}
+                    images={currentProduct.imageColors}
+                  />
+                )}
 
                 {/* Sizes */}
-                <Sizes
-                  setSelectedSize={setSelectedSize}
-                  selectedSize={selectedSize}
-                  sizes={currentProduct.sizes}
-                />
+                {currentProduct?.sizes?.length > 0 && (
+                  <Sizes
+                    setSelectedSize={setSelectedSize}
+                    selectedSize={selectedSize}
+                    sizes={currentProduct.sizes}
+                  />
+                )}
 
                 {/* Buttons */}
                 <div className="mt-5 flex flex-col gap-5">

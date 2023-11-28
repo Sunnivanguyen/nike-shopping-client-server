@@ -56,7 +56,7 @@
 
 // export default UploadPhoto;
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = import.meta.env.SERVER_BASE_URL;
 
 import React from "react";
 import { UploadOutlined } from "@ant-design/icons";

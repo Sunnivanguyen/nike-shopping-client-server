@@ -4,6 +4,7 @@ const ProductDetailRepository = require('../repositories/productDetailRepository
 const ProductHighlightRepository = require('../repositories/productHighlightRepository');
 const ProductImageRepository = require('../repositories/productImageRepository');
 const { BadRequestException, NotFoundException } = require('../exceptions');
+const ReviewRepository = require('../repositories/reviewRepository');
 
 class ProductService {
   async createProduct({ data }) {
@@ -514,9 +515,13 @@ class ProductService {
       const images = await ProductImageRepository.getAllProductImages(
         product.id,
       );
-      const imageColor = await ProductImageRepository.getProductImageColors(
+      const imageColors = await ProductImageRepository.getProductImageByPreCode(
         product.pre_code,
       );
+      const reviews = await ReviewRepository.getAllProductReviews(product.id);
+
+      const total = await ReviewRepository.getTotalReviewPoint(product.id);
+
       if (!product) {
         throw new NotFoundException(
           'Not Found Product',
@@ -549,13 +554,31 @@ class ProductService {
         );
       }
 
+      if (!imageColors) {
+        throw new NotFoundException(
+          'Not Found Image Colors',
+          404,
+          'Image Colors Not Found',
+        );
+      }
+
+      if (!reviews) {
+        throw new NotFoundException(
+          'Not Found Reviews',
+          404,
+          'Reviews Not Found',
+        );
+      }
+
       const responseData = {
         product,
         details,
         highlights,
         sizes,
         images,
-        imageColor,
+        imageColors,
+        reviews,
+        total,
       };
       return responseData;
     } catch (error) {
@@ -576,6 +599,9 @@ class ProductService {
       const imageColor = await ProductImageRepository.getProductImageColors(
         product.pre_code,
       );
+      const reviews = await ReviewRepository.getAllProductReviews(productId);
+
+      const total = await ReviewRepository.getTotalReviewPoint(productId);
 
       if (!product) {
         throw new NotFoundException('Not Found Product', 404);
@@ -588,6 +614,8 @@ class ProductService {
         sizes,
         images,
         imageColor,
+        reviews,
+        total,
       };
       return responseData;
     } catch (error) {
@@ -641,6 +669,24 @@ class ProductService {
       const responseData = {
         restoredProduct,
       };
+      return responseData;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getProductImageByPreCode(preCode) {
+    try {
+      const images =
+        await ProductImageRepository.getProductImageByPreCode(preCode);
+      if (!images) {
+        throw new NotFoundException('Not Found Images', 404);
+      }
+
+      const responseData = {
+        images,
+      };
+
       return responseData;
     } catch (error) {
       throw error;

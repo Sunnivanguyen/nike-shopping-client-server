@@ -11,7 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = import.meta.env.SERVER_BASE_URL;
 
 const AuthContext = createContext<AuthContextType | null>(null);
 

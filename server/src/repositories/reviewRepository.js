@@ -48,6 +48,13 @@ class ReviewRepository {
     });
     return deletedReview;
   }
+
+  async getTotalReviewPoint(productId) {
+    const totalReviewPoint = await ProductReviewEntity.sum('rating', {
+      where: { product_id: +productId },
+    });
+    return totalReviewPoint;
+  }
 }
 
 module.exports = new ReviewRepository();

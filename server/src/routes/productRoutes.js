@@ -135,4 +135,7 @@ router.delete(
   reviewController.deleteProductReview,
 );
 
+//Product's Images of the same precode
+router.get('/:pre_code/images', productController.getProductImageByPreCode);
+
 module.exports = router;

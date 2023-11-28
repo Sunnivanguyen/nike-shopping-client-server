@@ -4,7 +4,7 @@ import axios from "axios";
 
 import IChildrenProps from "../types/ChildrenType";
 import { IOrder } from "../types/OrderType";
-import { Icart, ICartItem } from "../types/CartType";
+// import { ICartItem } from "../types/UserType";
 import {
   IProduct,
   IProductDetail,
@@ -13,7 +13,7 @@ import {
   IProductSize,
 } from "../types/ProductType";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = import.meta.env.SERVER_BASE_URL;
 
 const ProductsContext = createContext(null);
 
@@ -31,8 +31,7 @@ type InitialState = {
   details: IProductDetail[];
   favorites: IProduct[];
   orders: IOrder[];
-  carts: Icart[];
-  cartItem: ICartItem[];
+  cartItem: [];
   isLoading: boolean;
   currentProduct: IProduct | object;
   currentSizes: IProductSize[];
@@ -58,7 +57,6 @@ const initialState: InitialState = {
   details: [],
   favorites: [],
   orders: [],
-  carts: [],
   cartItem: [],
   isLoading: false,
   currentProduct: {},

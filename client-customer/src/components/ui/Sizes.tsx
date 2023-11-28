@@ -2,14 +2,19 @@ import React from "react";
 
 import { IProductSize } from "../../types/ProductType";
 import { RadioGroup } from "@headlessui/react";
+import useProducts from "../../hooks/useProducts";
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
-const Sizes: React.FC<{ sizes: IProductSize[]; selectedSize: number }> = ({
-  sizes,
-  selectedSize,
-  setSelectedSize,
-}) => {
+const Sizes: React.FC<{
+  sizes: IProductSize[];
+  selectedSize: IProductSize;
+  setSelectedSize: React.Dispatch<React.SetStateAction<IProductSize>>;
+}> = ({ sizes, selectedSize, setSelectedSize }) => {
+  const { preDefinedSizes } = useProducts();
+
+  const sizeIndex = sizes?.findIndex((size) => size?.id === selectedSize?.id);
+
   return (
     <div className="mt-10">
       <div className="flex items-center justify-between">
@@ -25,7 +30,7 @@ const Sizes: React.FC<{ sizes: IProductSize[]; selectedSize: number }> = ({
       </div>
 
       <RadioGroup
-        value={selectedSize}
+        value={sizes[sizeIndex]}
         onChange={setSelectedSize}
         className="mt-4"
       >
@@ -33,7 +38,7 @@ const Sizes: React.FC<{ sizes: IProductSize[]; selectedSize: number }> = ({
         <div className="grid grid-cols-4 gap-4 sm:grid-cols-8 lg:grid-cols-4">
           {sizes &&
             sizes.length > 0 &&
-            sizes.map((size: IProductSize) => (
+            sizes.map((size: IProductSize, index) => (
               <RadioGroup.Option
                 key={crypto.randomUUID()}
                 value={size}
@@ -50,7 +55,9 @@ const Sizes: React.FC<{ sizes: IProductSize[]; selectedSize: number }> = ({
               >
                 {({ active, checked }) => (
                   <>
-                    <RadioGroup.Label as="span">{size.id}</RadioGroup.Label>
+                    <RadioGroup.Label as="span">
+                      {preDefinedSizes[index].size}
+                    </RadioGroup.Label>
                     {size.in_stock > 0 ? (
                       <span
                         className={classNames(

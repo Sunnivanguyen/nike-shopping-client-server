@@ -1,6 +1,6 @@
 import { RadioGroup } from "@headlessui/react";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = import.meta.env.SERVER_BASE_URL;
 export default function ImageColor({ image }) {
   return (
     <RadioGroup.Option

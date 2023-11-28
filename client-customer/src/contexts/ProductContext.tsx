@@ -1,4 +1,4 @@
-import { createContext, useEffect, useReducer, useState } from "react";
+import { createContext, useEffect, useReducer, useState, useMemo } from "react";
 
 import axios from "axios";
 
@@ -8,68 +8,36 @@ import "react-toastify/dist/ReactToastify.css";
 import IChildrenProps from "../types/ChildrenType";
 import { IOrder } from "../types/OrderType";
 import { ICartItem } from "../types/CartType";
-import {
-  IProduct,
-  IProductDetail,
-  IProductHighlight,
-  IProductImage,
-  IProductSize,
-} from "../types/ProductType";
-
-import useAuth from "../hooks/useAuth";
-
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+import { IProduct } from "../types/ProductType";
+//import.meta.env.SERVER_BASE_URL
+const BASE_URL = "http://localhost:8080";
 
 const ProductsContext = createContext(null);
 
 type InitialState = {
   products: IProduct[];
-  images: IProductImage[];
   uniqueProducts: IProduct[];
-  uniqueImages: IProductImage[];
   bestSellerProducts: IProduct[];
-  bestSellerImages: IProductImage[];
   newArrivalProducts: IProduct[];
-  newArrivalImages: IProductImage[];
-  sizes: IProductSize[];
-  highlights: IProductHighlight[];
-  details: IProductDetail[];
   favorites: IProduct[];
   orders: IOrder[];
   cartItem: ICartItem[];
   isLoading: boolean;
   currentProduct: IProduct | object;
-  currentSizes: IProductSize[];
-  currentHighlights: IProductHighlight[];
-  currentDetails: IProductDetail[];
-  currentImages: IProductImage[];
-  currentImageColors: IProductImage[];
   currentOrder: IProduct | object;
   error: string;
 };
 
 const initialState: InitialState = {
   products: [],
-  images: [],
   uniqueProducts: [],
-  uniqueImages: [],
   bestSellerProducts: [],
-  bestSellerImages: [],
   newArrivalProducts: [],
-  newArrivalImages: [],
-  sizes: [],
-  highlights: [],
-  details: [],
   favorites: [],
   orders: [],
   cartItem: [],
   isLoading: false,
   currentProduct: {},
-  currentSizes: [],
-  currentHighlights: [],
-  currentDetails: [],
-  currentImages: [],
-  currentImageColors: [],
   currentOrder: {},
   error: "",
 };
@@ -95,6 +63,18 @@ function reducer(state: InitialState, action: any): any {
         isLoading: false,
         products: action.payload,
       };
+    case "pre-defined-sizes/loaded":
+      return {
+        ...state,
+        isLoading: false,
+        preDefinedSizes: action.payload,
+      };
+    case "categories/loaded":
+      return {
+        ...state,
+        isLoading: false,
+        categories: action.payload,
+      };
     case "product/loaded":
       return {
         ...state,
@@ -107,7 +87,6 @@ function reducer(state: InitialState, action: any): any {
         isLoading: false,
         uniqueProducts: action.payload,
       };
-
     case "best-seller/loaded":
       return {
         ...state,
@@ -121,6 +100,14 @@ function reducer(state: InitialState, action: any): any {
         isLoading: false,
         newArrivalProducts: action.payload,
       };
+
+    case "image-color/loaded":
+      return {
+        ...state,
+        isLoading: false,
+        imageColors: action.payload,
+      };
+
     case "cartItem/added":
       return {
         ...state,
@@ -207,14 +194,12 @@ function reducer(state: InitialState, action: any): any {
         isLoading: false,
         searchs: action.payload,
       };
-
     case "rejected":
       return {
         ...state,
         isLoading: false,
         error: action.payload,
       };
-
     default:
       throw new Error("Unknown action type");
   }
@@ -227,21 +212,18 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
   const [isCheckedAll, setIsCheckedAll] = useState(false);
   const [query, setQuery] = useState("");
 
-  const { user } = useAuth();
-
   const [
     {
       products,
-      images,
       uniqueProducts,
       carts,
       orders,
       favorites,
       currentProduct,
       bestSellerProducts,
-      bestSellerImages,
       newArrivalProducts,
-      newArrivalImages,
+      categories,
+      preDefinedSizes,
       currentOrder,
       isLoading,
       error,
@@ -262,22 +244,13 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     }
   }, [selectedId]);
 
-  function showToast(status: string, message: string) {
-    if (status === "success") {
-      toast.success(message);
-    } else if (status === "error") {
-      toast.error(message);
-    }
-  }
-
-  async function fetchProducts() {
+  async function fetchPreDefinedSizes() {
     dispatch({ type: "loading" });
     try {
-      const res = await axios.get(`${BASE_URL}/api/v1/products`);
-      console.log(res, "GETTING ALL PRODUCTS");
+      const res = await axios.get(`${BASE_URL}/api/v1/sizes`);
       dispatch({
-        type: "products/loaded",
-        payload: res.data.data.details,
+        type: "pre-defined-sizes/loaded",
+        payload: res.data.data.sizes,
       });
     } catch (error) {
       dispatch({
@@ -286,6 +259,51 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
       });
     }
   }
+
+  useMemo(async () => await fetchPreDefinedSizes(), []);
+
+  async function fetchCategories() {
+    dispatch({ type: "loading" });
+    try {
+      const res = await axios.get(`${BASE_URL}/api/v1/categories`);
+      dispatch({
+        type: "categories/loaded",
+        payload: res.data.data.categories,
+      });
+    } catch (error) {
+      dispatch({
+        type: "rejected",
+        payload: "There was an error loading cities...",
+      });
+    }
+  }
+
+  useMemo(async () => await fetchCategories(), []);
+
+  function showToast(status: string, message: string) {
+    if (status === "success") {
+      toast.success(message);
+    } else if (status === "error") {
+      toast.error(message);
+    }
+  }
+
+  // async function fetchProducts() {
+  //   dispatch({ type: "loading" });
+  //   try {
+  //     const res = await axios.get(`${BASE_URL}/api/v1/products`);
+  //     console.log(res, "GETTING ALL PRODUCTS");
+  //     dispatch({
+  //       type: "products/loaded",
+  //       payload: res.data.data.details,
+  //     });
+  //   } catch (error) {
+  //     dispatch({
+  //       type: "rejected",
+  //       payload: "There was an error loading cities...",
+  //     });
+  //   }
+  // }
 
   async function fetchUniqueProducts() {
     dispatch({ type: "loading" });
@@ -307,7 +325,6 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     dispatch({ type: "loading" });
     try {
       const res = await axios.get(`${BASE_URL}/api/v1/products/new-arrivals`);
-      console.log(res, "GETTING ALL NEW ARRIVAL PRODUCTS");
       dispatch({
         type: "new-arrival/loaded",
         payload: res.data.data.details,
@@ -321,7 +338,6 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     dispatch({ type: "loading" });
     try {
       const res = await axios.get(`${BASE_URL}/api/v1/products/best-sellers`);
-      console.log(res, "GETTING ALL BEST SELLER PRODUCTS");
       dispatch({
         type: "best-seller/loaded",
         payload: res.data.data.details,
@@ -330,6 +346,25 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
       dispatch({ type: "rejected", payload: "Error" });
     }
   }
+
+  // async function fetchProductImageByPrecode(pre_code: string) {
+  //   dispatch({ type: "loading" });
+  //   try {
+  //     const res = await axios.get(
+  //       `${BASE_URL}/api/v1/products/${pre_code}}/images`,
+  //     );
+  //     console.log(pre_code, "PRE CODE");
+  //     dispatch({
+  //       type: "image-color/loaded",
+  //       payload: res.data.data.images,
+  //     });
+  //   } catch (error) {
+  //     dispatch({
+  //       type: "rejected",
+  //       payload: "There was an error loading cities...",
+  //     });
+  //   }
+  // }
 
   async function fetchAllCartItems(userId: number) {
     dispatch({ type: "loading" });
@@ -372,7 +407,7 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     dispatch({ type: "loading" });
     try {
       const res = await axios.get(
-        `${BASE_URL}/api/v1/products//product-code/${productCode}`,
+        `${BASE_URL}/api/v1/products/product-code/${productCode}`,
       );
       dispatch({
         type: "product/loaded",
@@ -458,14 +493,11 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     <ProductsContext.Provider
       value={{
         products,
-        images,
         uniqueProducts,
         currentProduct,
         isLoading,
         newArrivalProducts,
-        newArrivalImages,
         bestSellerProducts,
-        bestSellerImages,
         setSelectedId,
         addToCart,
         decreaseCart,
@@ -486,6 +518,8 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
         quantity,
         setQuantity,
         fetchProduct,
+        preDefinedSizes,
+        categories,
       }}
     >
       {children}

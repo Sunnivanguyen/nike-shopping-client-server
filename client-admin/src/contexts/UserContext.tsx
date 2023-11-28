@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { IUserAddress } from "../types/AddressType";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = import.meta.env.SERVER_BASE_URL;
 
 const UserContext = createContext<UserContextType | null>(null);
 

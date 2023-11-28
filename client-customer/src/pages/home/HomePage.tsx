@@ -4,7 +4,7 @@ import { SiNike } from "react-icons/si";
 import { Link } from "react-router-dom";
 
 const HomePage = () => {
-  const { uniqueProducts, setSelectedId } = useProducts();
+  const { uniqueProducts } = useProducts();
 
   return (
     <>
@@ -71,12 +71,7 @@ const HomePage = () => {
                       to={`/nike/featured/${product.product.product_code}`}
                       className="group"
                     >
-                      <div
-                        className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg bg-gray-200 shadow-xl xl:aspect-h-8 xl:aspect-w-7"
-                        onClick={() => {
-                          setSelectedId(product.product.product.id);
-                        }}
-                      >
+                      <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg bg-gray-200 shadow-xl xl:aspect-h-8 xl:aspect-w-7">
                         <img
                           src={product.imageData[1].image_src}
                           alt={product.imageData[1].image_alt}

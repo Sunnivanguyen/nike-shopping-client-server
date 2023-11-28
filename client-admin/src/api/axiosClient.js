@@ -2,13 +2,14 @@
 
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = import.meta.env.SERVER_BASE_URL;
 
 // axios.create: This creates a new instance of axios with custom default settings. The baseURL is set to “http://localhost:8080”, which means all requests made with this instance will be sent to this URL. The headers are set to accept and send JSON data.
 
 const BaseAxios = axios.create({
   baseURL: `${BASE_URL}`,
   headers: {
+    // Authorization: `Bearer ${localStorage.getItem("token")}`,
     "Content-Type": "application/json",
     Accept: "application/json",
   },

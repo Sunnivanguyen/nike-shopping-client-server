@@ -105,7 +105,6 @@ exports.createUserPhoto = async (req, res, next) => {
       message: error.message,
     });
   }
-
   next();
 };
 

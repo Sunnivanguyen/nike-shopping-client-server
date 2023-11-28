@@ -226,6 +226,28 @@ exports.getProduct = async (req, res) => {
   }
 };
 
+exports.getProductImageByPreCode = async (req, res) => {
+  const preCode = req.params.pre_code;
+  try {
+    const responseData = await ProductService.getProductImageByPreCode(preCode);
+    return res.status(200).json({ status: 'success', data: responseData });
+  } catch (error) {
+    if (error instanceof NotFoundException) {
+      return res
+        .status(error.statusCode)
+        .json({ status: 'fail', message: error.message, error: error.name });
+    } else {
+      // Generic error handler
+      console.error(error); // Log the error for debugging
+      return res.status(500).json({
+        status: 'error',
+        message: 'An unexpected error occurred',
+        error: error.message,
+      });
+    }
+  }
+};
+
 exports.getProductByProductCode = async (req, res) => {
   const productCode = req.params.product_code;
   try {

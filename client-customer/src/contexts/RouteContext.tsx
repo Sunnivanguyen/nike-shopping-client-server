@@ -160,11 +160,11 @@ const filters = [
 const RoutesProvider: React.FC<IProps> = ({ children }) => {
   const [currentPage, setCurrentPage] = useStickyState("home", "current_page");
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
-  useEffect(() => {
-    navigate(`${currentPage}`);
-  }, []);
+  // useEffect(() => {
+  //   navigate(`${currentPage}`);
+  // }, []);
 
   return (
     <RoutesContext.Provider value={{ currentPage, setCurrentPage }}>

@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { BsBoxArrowRight } from "react-icons/bs";
 import { FaUserCircle } from "react-icons/fa";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = import.meta.env.SERVER_BASE_URL;
 const User: React.FC = () => {
   const { user, logout } = useAuth();
   const { first_name, avatar } = user;
