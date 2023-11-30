@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const AuthRepository = require('../repositories/authRepository');
+const UserAddressRepository = require('../repositories/userAddressRepository');
 const { ConflictException, UnAuthorizedException } = require('../exceptions');
 
 class AuthService {
@@ -68,9 +69,14 @@ class AuthService {
 
         const token = jwt.sign(user, process.env.JWT_SECRET);
 
+        const addresses = await UserAddressRepository.getAllUserAddresses(
+          user.id,
+        );
+
         const responseData = {
           token,
           user,
+          addresses,
         };
 
         return responseData;

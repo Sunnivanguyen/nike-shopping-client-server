@@ -1,6 +1,6 @@
 import { createContext, useEffect, useReducer } from "react";
 
-import { IUser } from "../types/UserType";
+import { IUserData } from "../types/UserType";
 import IChildrenProps from "../types/ChildrenType";
 import { AuthContextType } from "../types/context/AuthContextType";
 
@@ -11,15 +11,15 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = import.meta.env.SERVER_BASE_URL;
+const BASE_URL = "http://localhost:8080";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 type InitialState = {
   isAuthLoading: boolean;
   isAuthenticated: boolean;
-  users: IUser[];
-  user: IUser | null;
+  users: IUserData[];
+  user: IUserData | null;
   userId: string | null;
   error: string | null;
 };
@@ -33,7 +33,7 @@ const initialState: InitialState = {
   error: "",
 };
 
-type Payload = boolean | IUser[] | IUser | string;
+type Payload = boolean | IUserData[] | IUserData | string;
 
 // Define the type for your action
 interface Action {
@@ -52,6 +52,12 @@ function reducer(state: InitialState, action: Action): any {
         ...state,
         isAuthLoading: false,
         users: action.payload,
+      };
+    case "user/updated":
+      return {
+        ...state,
+        isAuthLoading: false,
+        user: action.payload,
       };
     case "signup":
       return {
@@ -102,26 +108,32 @@ const AuthProvider: React.FC<IChildrenProps> = ({ children }) => {
     }
   }
 
-  async function login(email: string, password: string) {
+  async function login(dataLogin: { email: string; password: string }) {
     dispatch({ type: "loading" });
 
-    const dataLogin = { email, password };
     try {
       const res = await axios.post(
         `${BASE_URL}/api/v1/auth/user-login`,
         dataLogin,
       );
-      dispatch({ type: "login", payload: res.data.data.user });
+
+      const userData = {
+        user: res.data.data.user,
+        addresses: res.data.data.addresses,
+      };
+
+      dispatch({ type: "login", payload: userData });
       showToast("success", "Log in successfully");
 
       window.localStorage.setItem(
         "user_id",
-        JSON.stringify(res.data.data.user?.id),
+        JSON.stringify(res.data.data.user.id),
       );
       window.localStorage.setItem("token", JSON.stringify(res.data.data.token));
 
       navigate("/home", { replace: true });
     } catch (error) {
+      console.error(error);
       showToast("error", "Email has not been registed");
       dispatch({
         type: "rejected",
@@ -136,9 +148,15 @@ const AuthProvider: React.FC<IChildrenProps> = ({ children }) => {
       dispatch({ type: "loading" });
       try {
         const res = await axios.get(`${BASE_URL}/api/v1/users/${userId}`);
+
+        const userData = {
+          user: res.data.data.user,
+          addresses: res.data.data.addresses,
+        };
+
         dispatch({
           type: "login",
-          payload: res.data.data.user,
+          payload: userData,
         });
       } catch (err) {
         dispatch({
@@ -183,6 +201,33 @@ const AuthProvider: React.FC<IChildrenProps> = ({ children }) => {
     }
   }
 
+  async function updateUser(formData: any) {
+    const userId = JSON.parse(window.localStorage.getItem("user_id") || "null");
+    if (userId) {
+      dispatch({ type: "loading" });
+      try {
+        const res = await axios.put(
+          `${BASE_URL}/api/v1/users/${userId}`,
+          formData,
+        );
+        dispatch({
+          type: "user/updated",
+          payload: res.data.data.user,
+        });
+
+        showToast("success", "Update User successfully");
+      } catch (err) {
+        dispatch({
+          type: "rejected",
+          payload: "There was an error loading user...",
+        });
+
+        showToast("error", "Fail to update user");
+      }
+      return;
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -195,6 +240,7 @@ const AuthProvider: React.FC<IChildrenProps> = ({ children }) => {
         logout,
         register,
         error,
+        updateUser,
       }}
     >
       {children}

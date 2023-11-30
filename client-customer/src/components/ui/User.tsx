@@ -4,10 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { BsBoxArrowRight } from "react-icons/bs";
 import { FaUserCircle } from "react-icons/fa";
 
-const BASE_URL = import.meta.env.SERVER_BASE_URL;
 const User: React.FC = () => {
   const { user, logout } = useAuth();
-  const { first_name, avatar } = user;
+  const { first_name, avatar } = user.user;
   const navigate = useNavigate();
 
   function handleClick() {
@@ -18,7 +17,7 @@ const User: React.FC = () => {
   return (
     <div className="ml-5 flex items-center justify-start gap-2">
       <Link to="/setting">
-        {user.avatar ? (
+        {user.user.avatar ? (
           <img
             className="mr-3 inline-block h-10 w-10 rounded-full ring-2 ring-white"
             src={avatar}
@@ -31,7 +30,7 @@ const User: React.FC = () => {
 
       <div className="flex flex-col">
         <h3 className="dark:text-white">
-          {first_name ? `Welcome, ${user.first_name}.` : "Welcome."}
+          {first_name ? `Welcome, ${user.user.first_name}.` : "Welcome."}
         </h3>
         <button
           className="flex items-center justify-start gap-3 dark:text-white"

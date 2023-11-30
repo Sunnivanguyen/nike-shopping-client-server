@@ -1,6 +1,7 @@
 import { RadioGroup } from "@headlessui/react";
 import { IProductImage } from "../../types/ProductType";
 import { Link } from "react-router-dom";
+// import { useTransition } from "react";
 import useRoutes from "../../hooks/useRoutes";
 
 export default function ImageColors({
@@ -12,6 +13,8 @@ export default function ImageColors({
   const selectedIndex = images?.findIndex(
     (image: IProductImage) => image?.id === selectedColor?.id,
   );
+  // const [isPending, startTransition] = useTransition();
+  // const transition = useTransition();
 
   return (
     <div className="mt-10">
@@ -39,7 +42,7 @@ export default function ImageColors({
                   {({ active, checked }) => (
                     <>
                       <div className="flex w-32 items-center justify-between">
-                        <Link to={`/${currentPage}/${image.product_code}`}>
+                        <Link to={`${currentPage}/${image.product_code}`}>
                           <div className="flex items-center">
                             <div className="text-sm">
                               <RadioGroup.Description

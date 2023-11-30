@@ -29,7 +29,13 @@ const LogInPage: React.FC = () => {
     if (!email || !password || !checked) {
       console.log("Have to type input");
     } else {
-      login(email, password);
+      const trimedEmail = email.trim();
+      const trimedPassword = password.trim();
+      const dataLogin = {
+        email: trimedEmail,
+        password: trimedPassword,
+      };
+      login(dataLogin);
     }
   }
 

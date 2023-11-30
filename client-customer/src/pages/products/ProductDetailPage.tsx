@@ -26,6 +26,7 @@ const ProductDetailPage: React.FC = () => {
     addFavorite,
     fetchProduct,
     categories,
+    imageColors,
   } = useProducts();
 
   useEffect(() => {
@@ -71,7 +72,14 @@ const ProductDetailPage: React.FC = () => {
     e.preventDefault();
 
     if (selectedColor && selectedSize) {
-      // addToCart(user.id, selectedColor, 1, selectedSize);
+      const formData = new FormData();
+      formData.append("product_id", currentProduct?.product?.id);
+      formData.append("quantity_ordered", "1");
+      formData.append("product_size", selectedSize.size_id);
+      // for (const [key, value] of formData.entries()) {
+      //   console.log(`${key}: ${value}`);
+      // }
+      addToCart(formData);
     }
   }
 
@@ -92,7 +100,6 @@ const ProductDetailPage: React.FC = () => {
 
   return (
     <div className="bg-white text-dark-70 dark:bg-dark-100 dark:text-white">
-      {isLoading && <Spinner />}
       {!isLoading && currentProduct ? (
         <div className="pt-6">
           {/* BreadScrumb */}
@@ -119,11 +126,11 @@ const ProductDetailPage: React.FC = () => {
 
               <form className="mt-10">
                 {/* Colors */}
-                {currentProduct?.imageColors?.length > 0 && (
+                {imageColors?.length > 0 && (
                   <ImageColors
                     selectedColor={selectedColor}
                     setSelectedColor={setSelectedColor}
-                    images={currentProduct.imageColors}
+                    images={imageColors}
                   />
                 )}
 

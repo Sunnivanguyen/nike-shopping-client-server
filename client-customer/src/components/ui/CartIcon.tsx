@@ -9,9 +9,10 @@ import AlertToLoginModal from "./AlertToLoginModal";
 
 const CartIcon: React.FC = () => {
   const { playActive } = useSounds();
-  const { carts } = useProducts();
+  const { cart } = useProducts();
   const { user } = useAuth();
   const navigate = useNavigate();
+  console.log(cart, "CART");
 
   let [isOpen, setIsOpen] = useState(false);
 
@@ -49,7 +50,7 @@ const CartIcon: React.FC = () => {
           <TiShoppingCart className="h-7 w-7 text-black dark:text-white" />
         </button>
         <div className="absolute -right-2 -top-3 flex h-6 w-6 items-center justify-center rounded-full bg-dark-50 text-sm text-white dark:bg-indigo-600">
-          {carts ? carts.length : 0}
+          {cart ? cart.length : 0}
         </div>
       </div>
     </>

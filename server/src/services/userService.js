@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 
 const UserRepository = require('../repositories/userRepository');
+const UserAddressRepository = require('../repositories/userAddressRepository');
 const AuthRepository = require('../repositories/authRepository');
 const { NotFoundException } = require('../exceptions');
 
@@ -84,8 +85,11 @@ class UserService {
         throw new NotFoundException('User not found', 404);
       }
 
+      const addresses = await UserAddressRepository.getAllUserAddresses(userId);
+
       const responseData = {
         user,
+        addresses,
       };
 
       return responseData;

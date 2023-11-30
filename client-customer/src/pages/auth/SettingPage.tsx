@@ -12,14 +12,207 @@
   }
   ```
 */
-import { PhotoIcon, UserCircleIcon } from "@heroicons/react/24/solid";
+import React, { useState } from "react";
+import { PhotoIcon } from "@heroicons/react/24/solid";
 import ButtonMoveBack from "../../components/ui/ButtonMoveBack";
+import useAuth from "../../hooks/useAuth";
+import { FaUserCircle } from "react-icons/fa";
+import { validateSize, isImage } from "../../utils/fileValidation";
+import { toast } from "react-toastify";
+import { IoLocation } from "react-icons/io5";
+import { IUser, IUserAddress } from "../../types/UserType";
+import UserAddressList from "../../components/ui/UserAddressList";
 
 const SettingPage: React.FC = () => {
+  const { user, updateUser } = useAuth();
+  const [countryList, setCountryList] = useState<string[]>([]);
+  const [imageError, setImageError] = useState<string>("");
+  const [image, setImage] = useState<any>();
+
+  let userData: IUser | null = null;
+  let userAddressData: IUserAddress | null = null;
+  if (user) {
+    userData = user.user;
+    userAddressData = user.addresses;
+  }
+
+  const [imageSrc, setImageSrc] = useState<string>(() => {
+    if (userData?.avatar) {
+      return userData.avatar;
+    }
+    return "";
+  });
+  const [firstName, setFirstName] = useState<string>(() => {
+    if (userData?.first_name) {
+      return userData.first_name;
+    }
+    return "";
+  });
+  const [lastName, setLastName] = useState<string>(() => {
+    if (userData?.last_name) {
+      return userData.last_name;
+    }
+    return "";
+  });
+  const [phoneNumber, setPhoneNumber] = useState<string>(() => {
+    if (userData?.phone_number) {
+      return userData.phone_number;
+    }
+    return "";
+  });
+  const [country, setCountry] = useState<string>(() => {
+    if (userAddressData?.country) {
+      return userAddressData.country;
+    }
+    return "";
+  });
+  const [city, setCity] = useState<string>(() => {
+    if (userAddressData?.city) {
+      return userAddressData.city;
+    }
+    return "";
+  });
+  const [region, setRegion] = useState<string>(() => {
+    if (userAddressData?.region) {
+      return userAddressData.region;
+    }
+    return "";
+  });
+  const [addressLine1, setAddressLine1] = useState<string>(() => {
+    if (userAddressData?.address_line_1) {
+      return userAddressData.address_line_1;
+    }
+    return "";
+  });
+  const [addressLine2, setAddressLine2] = useState<string>(() => {
+    if (userAddressData?.address_line_2) {
+      return userAddressData.address_line_2;
+    }
+    return "";
+  });
+
+  const [postalCode, setPostalCode] = useState<number>(() => {
+    if (userAddressData?.postal_code) {
+      return userAddressData.postal_code;
+    }
+    return 0;
+  });
+
+  const [latitude, setLatitude] = useState<string>(() => {
+    if (user?.latitude) {
+      return userAddressData?.latitude;
+    }
+    return "";
+  });
+
+  const [longitude, setLongitude] = useState<string>(() => {
+    if (userAddressData?.longitude) {
+      return userAddressData.longitude;
+    }
+    return "";
+  });
+  const getEmail = function () {
+    if (userData?.email) {
+      return userData.email;
+    }
+    return "";
+  };
+  const email = getEmail();
+
+  async function fetchCountries() {
+    try {
+      const response = await fetch(`https://restcountries.com/v3.1/all`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch countries data");
+      }
+      const data = await response.json();
+      const countryList = data
+        .map((country: any) => country.name.common)
+        .sort();
+
+      setCountryList(countryList);
+    } catch (error) {
+      console.error("Error fetching country data:", error);
+    }
+  }
+
+  fetchCountries();
+
+  const getGeoLocation = (e) => {
+    e.preventDefault();
+
+    console.log("getGeoLocation");
+    async function fetchGeoLocation() {
+      const url = `https://ipgeolocation.abstractapi.com/v1/?api_key=40cbb33e1b5c4a41a6c94b7eb799bd68`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      setCountry(data.country);
+      setCity(data.city);
+      setRegion(data.region);
+      setLatitude(data.latitude);
+      setLongitude(data.longitude);
+      setPostalCode(data.postal_code);
+    }
+
+    fetchGeoLocation();
+  };
+
+  function handleImageChange(e) {
+    setImageError("");
+    const img = e.target.files[0];
+    // if no image selected
+    if (!img) {
+      return;
+    }
+
+    // check if image
+    const result = isImage(img.name);
+    if (!result) {
+      const error = "File type should be a image";
+      toast(error, { type: "error" });
+      setImageError(error);
+      return;
+    }
+    const isImageLarge = validateSize(img);
+    if (isImageLarge) {
+      const error = "File must be less or equal to 5MB";
+      toast(error, { type: "error" });
+      setImageError(error);
+      return;
+    }
+    const reader = new FileReader();
+    // converts to BASE 64
+    reader.readAsDataURL(img);
+    reader.addEventListener("load", () => {
+      setImageSrc(reader.result);
+      setImage(img);
+    });
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("first_name", firstName);
+    formData.append("last_name", lastName);
+    formData.append("country", country);
+    formData.append("city", city);
+    formData.append("region", region);
+    formData.append("address_line_1", addressLine1);
+    formData.append("address_line_2", addressLine2);
+    formData.append("postal_code", postalCode);
+    formData.append("phone_number", phoneNumber);
+    formData.append("photo", image);
+    formData.append("latitude", String(latitude));
+    formData.append("longitude", String(longitude));
+
+    updateUser(formData);
+  }
+
   return (
     <div className="mx-auto flex min-h-full flex-1 flex-col justify-center bg-white px-6 py-12 dark:bg-dark-100 dark:text-white lg:px-8">
       <ButtonMoveBack />
-      <form className="mx-auto max-w-7xl">
+      <form className="mx-auto max-w-7xl" onSubmit={handleSubmit}>
         <div className="space-y-12">
           <div className="border-b border-gray-900/10 pb-12">
             <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-white">
@@ -30,64 +223,25 @@ const SettingPage: React.FC = () => {
               share.
             </p>
 
+            {/* Avatar */}
             <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-              <div className="sm:col-span-4">
-                <label
-                  htmlFor="username"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
-                >
-                  Username
-                </label>
-                <div className="mt-2">
-                  <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
-                    <span className="flex select-none items-center pl-3 text-gray-500 dark:text-white sm:text-sm">
-                      workcation.com/
-                    </span>
-                    <input
-                      type="text"
-                      name="username"
-                      id="username"
-                      autoComplete="username"
-                      className="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 dark:text-white sm:text-sm sm:leading-6"
-                      placeholder="janesmith"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-span-full">
-                <label
-                  htmlFor="about"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
-                >
-                  About
-                </label>
-                <div className="mt-2">
-                  <textarea
-                    id="about"
-                    name="about"
-                    rows={3}
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-white sm:text-sm sm:leading-6"
-                    defaultValue={""}
-                  />
-                </div>
-                <p className="mt-3 text-sm leading-6 text-gray-600 dark:text-white">
-                  Write a few sentences about yourself.
-                </p>
-              </div>
-
               <div className="col-span-full">
                 <label
                   htmlFor="photo"
                   className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
                 >
-                  Photo
+                  Avatar
                 </label>
                 <div className="mt-2 flex items-center gap-x-3">
-                  <UserCircleIcon
-                    className="h-12 w-12 text-gray-300 dark:text-white"
-                    aria-hidden="true"
-                  />
+                  {userData?.avatar ? (
+                    <img
+                      className="mr-3 inline-block h-12 w-12 rounded-full  ring-2 ring-white dark:text-white"
+                      src={userData.avatar}
+                      alt="user avatar"
+                    />
+                  ) : (
+                    <FaUserCircle className="mr-3 inline-block h-10 w-10 text-black dark:text-white" />
+                  )}
                   <button
                     type="button"
                     className="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
@@ -106,24 +260,36 @@ const SettingPage: React.FC = () => {
                 </label>
                 <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
                   <div className="text-center">
-                    <PhotoIcon
-                      className="mx-auto h-12 w-12 text-gray-300 dark:text-white"
-                      aria-hidden="true"
-                    />
+                    {image ? (
+                      <img
+                        alt="card"
+                        src={imageSrc}
+                        className="mx-auto my-5 h-auto w-[300px] basis-1/2"
+                        accept="image/*"
+                      />
+                    ) : (
+                      <PhotoIcon
+                        className="mx-auto h-12 w-12 text-gray-300 dark:text-white"
+                        aria-hidden="true"
+                      />
+                    )}
                     <div className="mt-4 flex text-sm leading-6 text-gray-600 dark:text-white">
                       <label
                         htmlFor="file-upload"
                         className="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
                       >
-                        <span className="mx-4">Upload a file</span>
+                        <span className="mx-4">Upload a file </span>
                         <input
                           id="file-upload"
                           name="file-upload"
                           type="file"
                           className="sr-only"
+                          onChange={handleImageChange}
                         />
                       </label>
-                      <p className="pl-1 dark:text-white">or drag and drop</p>
+                      <p className="ml-2 pl-1 dark:text-white">
+                        or drag and drop
+                      </p>
                     </div>
                     <p className="text-xs leading-5 text-gray-600 dark:text-white">
                       PNG, JPG, GIF up to 10MB
@@ -142,6 +308,7 @@ const SettingPage: React.FC = () => {
               Use a permanent address where you can receive mail.
             </p>
 
+            {/* First name and last name */}
             <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
               <div className="sm:col-span-3">
                 <label
@@ -152,6 +319,10 @@ const SettingPage: React.FC = () => {
                 </label>
                 <div className="mt-2">
                   <input
+                    value={firstName}
+                    onChange={(e) => {
+                      setFirstName(e.target.value);
+                    }}
                     type="text"
                     name="first-name"
                     id="first-name"
@@ -170,11 +341,38 @@ const SettingPage: React.FC = () => {
                 </label>
                 <div className="mt-2">
                   <input
+                    value={lastName}
+                    onChange={(e) => {
+                      setLastName(e.target.value);
+                    }}
                     type="text"
                     name="last-name"
                     id="last-name"
                     autoComplete="family-name"
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-white sm:text-sm sm:leading-6"
+                  />
+                </div>
+              </div>
+
+              {/* Phone number */}
+              <div className="sm:col-span-3">
+                <label
+                  htmlFor="first-name"
+                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
+                >
+                  Phone number
+                </label>
+                <div className="mt-2">
+                  <input
+                    value={phoneNumber}
+                    onChange={(e) => {
+                      setPhoneNumber(e.target.value);
+                    }}
+                    type="text"
+                    name="first-name"
+                    id="first-name"
+                    autoComplete="given-name"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
                 </div>
               </div>
@@ -188,6 +386,8 @@ const SettingPage: React.FC = () => {
                 </label>
                 <div className="mt-2">
                   <input
+                    value={email}
+                    disabled
                     id="email"
                     name="email"
                     type="email"
@@ -195,6 +395,26 @@ const SettingPage: React.FC = () => {
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
                 </div>
+              </div>
+
+              {/* Address */}
+              {userAddressData && (
+                <div className="block sm:col-span-4">
+                  <UserAddressList addresses={userAddressData} />
+                </div>
+              )}
+
+              {/* Automitically set address */}
+              <div className="block sm:col-span-4">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">
+                  Get your location
+                </label>
+                <button
+                  onClick={getGeoLocation}
+                  className="text-black-700 mt-2 flex h-[36px] w-[36px] items-center justify-center rounded-full border border-gray-300 bg-white text-sm font-medium shadow-sm hover:bg-sky-900 hover:text-white dark:hover:bg-sky-100"
+                >
+                  <IoLocation className="h-[24px] w-[24px] text-center dark:text-black" />
+                </button>
               </div>
 
               <div className="sm:col-span-3">
@@ -206,36 +426,69 @@ const SettingPage: React.FC = () => {
                 </label>
                 <div className="mt-2">
                   <select
+                    value={country}
+                    onChange={(e) => {
+                      setCountry(e.target.value);
+                    }}
                     id="country"
                     name="country"
                     autoComplete="country-name"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-white sm:max-w-xs sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-black sm:max-w-xs sm:text-sm sm:leading-6"
                   >
-                    <option>United States</option>
-                    <option>Canada</option>
-                    <option>Mexico</option>
+                    {countryList.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
-
+              {/* Address Line 1 */}
+              <div className="col-span-full">
+                <label
+                  htmlFor="street-address"
+                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-black"
+                >
+                  Address Line 1
+                </label>
+                <div className="mt-2">
+                  <input
+                    value={addressLine1}
+                    onChange={(e) => {
+                      setAddressLine1(e.target.value);
+                    }}
+                    type="text"
+                    name="street-address"
+                    id="street-address"
+                    autoComplete="street-address"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-black sm:text-sm sm:leading-6"
+                  />
+                </div>
+              </div>
+              {/* Address Line 2 */}
               <div className="col-span-full">
                 <label
                   htmlFor="street-address"
                   className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
                 >
-                  Street address
+                  Address Line 2
                 </label>
                 <div className="mt-2">
                   <input
+                    value={addressLine2}
+                    onChange={(e) => {
+                      setAddressLine2(e.target.value);
+                    }}
                     type="text"
                     name="street-address"
                     id="street-address"
                     autoComplete="street-address"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-white sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-black sm:text-sm sm:leading-6"
                   />
                 </div>
               </div>
 
+              {/* City */}
               <div className="sm:col-span-2 sm:col-start-1">
                 <label
                   htmlFor="city"
@@ -245,11 +498,15 @@ const SettingPage: React.FC = () => {
                 </label>
                 <div className="mt-2">
                   <input
+                    value={city}
+                    onChange={(e) => {
+                      setCity(e.target.value);
+                    }}
                     type="text"
                     name="city"
                     id="city"
                     autoComplete="address-level2"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-white sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-black sm:text-sm sm:leading-6"
                   />
                 </div>
               </div>
@@ -257,21 +514,26 @@ const SettingPage: React.FC = () => {
               <div className="sm:col-span-2">
                 <label
                   htmlFor="region"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
+                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-black"
                 >
                   State / Province
                 </label>
                 <div className="mt-2">
                   <input
+                    value={region}
+                    onChange={(e) => {
+                      setRegion(e.target.value);
+                    }}
                     type="text"
                     name="region"
                     id="region"
                     autoComplete="address-level1"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-white sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-black sm:text-sm sm:leading-6"
                   />
                 </div>
               </div>
 
+              {/* ZIP / Postal code */}
               <div className="sm:col-span-2">
                 <label
                   htmlFor="postal-code"
@@ -281,11 +543,15 @@ const SettingPage: React.FC = () => {
                 </label>
                 <div className="mt-2">
                   <input
+                    value={postalCode}
+                    onChange={(e) => {
+                      setPostalCode(e.target.value);
+                    }}
                     type="text"
                     name="postal-code"
                     id="postal-code"
                     autoComplete="postal-code"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-white sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:text-black sm:text-sm sm:leading-6"
                   />
                 </div>
               </div>
@@ -302,7 +568,7 @@ const SettingPage: React.FC = () => {
             </p>
 
             <div className="mt-10 space-y-10">
-              <fieldset>
+              {/* <fieldset>
                 <legend className="text-sm font-semibold leading-6 text-gray-900 dark:text-white">
                   By Email
                 </legend>
@@ -372,8 +638,8 @@ const SettingPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </fieldset>
-              <fieldset>
+              </fieldset> */}
+              {/* <fieldset>
                 <legend className="text-sm font-semibold leading-6 text-gray-900 dark:text-white">
                   Push Notifications
                 </legend>
@@ -424,7 +690,7 @@ const SettingPage: React.FC = () => {
                     </label>
                   </div>
                 </div>
-              </fieldset>
+              </fieldset> */}
             </div>
           </div>
         </div>

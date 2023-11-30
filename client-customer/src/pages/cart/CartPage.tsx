@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Link, useNavigate } from "react-router-dom";
+import { MdDeleteOutline } from "react-icons/md";
 // import OrderPrice from "../../components/OrderPrice";
 import Counter from "../../components/ui/Counter";
 import { MdDeleteForever } from "react-icons/md";
@@ -9,39 +10,32 @@ import Button from "../../components/ui/Button";
 import useProducts from "../../hooks/useProducts";
 import useSounds from "../../hooks/useSounds";
 import { ICartItem } from "../../types/CartType";
+import CartItemImage from "./CartItemImage";
+import CartItemCheckBox from "./CartItemCheckBox";
 
 const CustomerCartPage: React.FC = () => {
-  const {
-    carts,
-    deleteCart,
-    checkCart,
-    checkAllCart,
-    setIsChecked,
-    setIsCheckedAll,
-    isCheckedAll,
-    isChecked,
-    totalOrderPrice,
-    checkout,
-    quantity,
-    setQuantity,
-  } = useProducts();
+  const { cart, deleteCart, totalOrderPrice, checkout, quantity, setQuantity } =
+    useProducts();
+  const [checkedCartList, setCheckedCartList] = useState<number[] | []>([]);
+  const [isCheckedAll, setIsCheckedAll] = useState(false);
   const { playActive } = useSounds();
   const navigate = useNavigate();
 
-  function handleCheck(id) {
-    setIsChecked(!isChecked);
-    checkCart(id, isChecked);
-  }
-
-  function handleCheckAll(isCheckedAll) {
-    setIsCheckedAll(!isCheckedAll);
-    checkAllCart(isCheckedAll);
+  function handleCheckAll(e: React.ChangeEvent<HTMLInputElement>) {
+    const isCheckedAll = e.target.checked;
+    setIsCheckedAll(isCheckedAll);
+    if (isCheckedAll) {
+      setCheckedCartList(cart.map((item: ICartItem) => item.product_id));
+    }
+    if (!isCheckedAll) {
+      setCheckedCartList([]);
+    }
   }
 
   function handleCheckOut() {
     checkout();
 
-    navigate("/vn/home");
+    navigate("/home");
   }
 
   return (
@@ -51,86 +45,77 @@ const CustomerCartPage: React.FC = () => {
           Shopping Cart
         </h1>
       </div>
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
-        <h2 className="sr-only">Products</h2>
-
-        <div className="grid-rows grid gap-4">
-          {carts &&
-            carts.length > 0 &&
-            carts.map((product: ICartItem) => (
-              <div
-                key={crypto.randomUUID()}
-                className="flex h-[400px] w-full items-center justify-start gap-20 border-b border-gray-200"
-              >
-                <Link to={`${product.id}`} className="w-[280px]">
-                  <div className="aspect-h-1 aspect-w-1 h-full w-[250px] overflow-hidden rounded-lg bg-gray-200 xl:aspect-h-8 xl:aspect-w-7">
-                    <img
-                      src={product.images[1].src}
-                      alt={product.images[1].alt}
-                      className="h-full w-full object-cover object-center hover:opacity-75"
-                    />
-                  </div>
-                  <h3 className=" mt-2 text-xl text-dark-50 dark:text-white">
-                    {product.product_name}
+      <div className="flex gap-4">
+        <div className="mx-[20px] max-w-2xl px-4 py-5 sm:px-6 sm:py-10 lg:max-w-5xl lg:px-8">
+          <h2 className="sr-only">Products</h2>
+          <div className="grid-rows grid gap-4">
+            {cart?.length > 0 &&
+              cart.map((cart: ICartItem) => (
+                <div
+                  key={crypto.randomUUID()}
+                  className="flex h-[200px] w-full items-center justify-start gap-10 border-b border-gray-200"
+                >
+                  <Link to={`${cart.product_code}`}>
+                    <CartItemImage cart={cart} />
+                  </Link>
+                  <h3 className="mt-2 text-sm text-dark-50 dark:text-white">
+                    {cart.product_name}
                   </h3>
-                  <div className="flex gap-5">
-                    <h4 className=" text-md mt-2 text-dark-50 dark:text-white">
-                      Color: {product.color}
+                  <div className="flex flex-col gap-5">
+                    <h4 className=" mt-2 text-sm text-dark-50 dark:text-white">
+                      Color: {cart.product_color}
                     </h4>
-                    <h4 className=" text-md mt-2 text-dark-50 dark:text-white">
-                      Size: {`${product.size}`}
+                    <h4 className=" mt-2 text-sm text-dark-50 dark:text-white">
+                      Size: {`${cart.product_size}`}
                     </h4>
                   </div>
-                </Link>
-                <div className="mx-1 flex items-center justify-start gap-4">
-                  <input
-                    name="check-cart"
-                    value={isChecked}
-                    onChange={() => setIsChecked(!isChecked)}
-                    type="checkbox"
-                    className="dark:border-white-600 h-5 w-5 rounded border  border-gray-300 text-cyan-600 focus:ring-2 focus:ring-cyan-500 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-cyan-600"
-                    onMouseDown={playActive}
-                  />
-                </div>
-                <div className="w-[400px]">
-                  {/* <OrderPrice
+                  <div className="w-[400px]">
+                    {/* <OrderPrice
                     price={product.price}
                     discount={product.discount}
                   /> */}
-                </div>
-                <Counter id={product.id} quantity={product.quantity} />
+                  </div>
+                  {/* <Counter id={product.id} quantity={product.quantity} />
                 <MdDeleteForever
                   className="text-3xl text-dark-50 dark:text-white"
                   onClick={() => deleteCart(product.id)}
-                />
-              </div>
-            ))}
+                /> */}
+                  <CartItemCheckBox
+                    setCheckedCartList={setCheckedCartList}
+                    checkedCartList={checkedCartList}
+                    productId={cart.product_id}
+                    setIsCheckedAll={setIsCheckedAll}
+                  />
+                  <MdDeleteOutline className="text-3xl text-dark-50 dark:text-white" />
+                </div>
+              ))}
+          </div>
         </div>
-      </div>
-
-      <div className="mx-auto grid w-[600px] grid-cols-3 items-center gap-4 px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-        <div className="mx-1 flex items-center justify-start gap-4">
-          <input
-            name="select-all"
-            value={isCheckedAll}
-            type="checkbox"
-            className="dark:border-white-600 h-5 w-5 rounded border  border-gray-300 text-cyan-600 focus:ring-2 focus:ring-cyan-500 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-cyan-600"
-            onChange={() => handleCheckAll(isCheckedAll)}
-            onMouseDown={playActive}
-          />
-
-          <label
-            htmlFor="select-all"
-            id="select-all"
-            className="text-2xl text-black dark:text-white"
-          >
-            Select All
-          </label>
-        </div>
-        <h2 className="text-2xl text-black dark:text-white">
-          ${totalOrderPrice}
-        </h2>
-        <Button onHandleClick={handleCheckOut}>CheckOut</Button>
+        {cart?.length > 0 && (
+          <div className="mx-[20px] grid h-[350px] w-[20%] grid-rows-2 items-center gap-4 px-4 py-16 sm:px-0 sm:py-24  lg:px-0">
+            <div className="mx-1 flex items-center justify-start gap-4">
+              <label
+                htmlFor="select-all"
+                id="select-all"
+                className="text-xl text-black dark:text-white"
+              >
+                Select All
+              </label>
+              <input
+                name="select-all"
+                value={isCheckedAll}
+                type="checkbox"
+                className="dark:border-white-600 h-5 w-5 rounded border  border-gray-300 text-cyan-600 focus:ring-2 focus:ring-cyan-500 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-cyan-600"
+                onChange={handleCheckAll}
+                onMouseDown={playActive}
+              />
+            </div>
+            <h2 className="text-xl text-black dark:text-white">
+              Total: {totalOrderPrice}
+            </h2>
+            <Button onHandleClick={handleCheckOut}>CheckOut</Button>
+          </div>
+        )}
       </div>
     </main>
   );

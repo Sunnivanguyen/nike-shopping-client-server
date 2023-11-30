@@ -8,7 +8,8 @@ import "react-toastify/dist/ReactToastify.css";
 import IChildrenProps from "../types/ChildrenType";
 import { IOrder } from "../types/OrderType";
 import { ICartItem } from "../types/CartType";
-import { IProduct } from "../types/ProductType";
+import { IProduct, IProductImage } from "../types/ProductType";
+import useAuth from "../hooks/useAuth";
 //import.meta.env.SERVER_BASE_URL
 const BASE_URL = "http://localhost:8080";
 
@@ -93,56 +94,41 @@ function reducer(state: InitialState, action: any): any {
         isLoading: false,
         bestSellerProducts: action.payload,
       };
-
     case "new-arrival/loaded":
       return {
         ...state,
         isLoading: false,
         newArrivalProducts: action.payload,
       };
-
-    case "image-color/loaded":
+    case "cart/loaded":
       return {
         ...state,
         isLoading: false,
-        imageColors: action.payload,
-      };
-
-    case "cartItem/added":
-      return {
-        ...state,
-        isLoading: false,
-        carts: action.payload,
+        cart: action.payload,
       };
     case "cartItem/loaded":
       return {
         ...state,
         isLoading: false,
-        carts: action.payload,
+        cart: action.payload,
       };
     case "cart/increase":
       return {
         ...state,
         isLoading: false,
-        carts: action.payload,
+        cart: action.payload,
       };
     case "cart/decrease":
       return {
         ...state,
         isLoading: false,
-        carts: action.payload,
-      };
-    case "carts/loaded":
-      return {
-        ...state,
-        isLoading: false,
-        carts: action.payload,
+        cart: action.payload,
       };
     case "cart/purchased":
       return {
         ...state,
         isLoading: false,
-        carts: action.payload,
+        cart: action.payload,
       };
     case "cart/purchasedAll":
       return {
@@ -200,23 +186,27 @@ function reducer(state: InitialState, action: any): any {
         isLoading: false,
         error: action.payload,
       };
+    case "fetched":
+      return {
+        ...state,
+        isLoading: false,
+      };
     default:
       throw new Error("Unknown action type");
   }
 }
 
 const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [quantity, setQuantity] = useState(0);
-  const [isChecked, setIsChecked] = useState(false);
-  const [isCheckedAll, setIsCheckedAll] = useState(false);
   const [query, setQuery] = useState("");
+  const [imageColors, setImageColors] = useState<IProductImage[] | []>([]);
 
   const [
     {
       products,
       uniqueProducts,
-      carts,
+      cart,
       orders,
       favorites,
       currentProduct,
@@ -232,17 +222,30 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     dispatch,
   ] = useReducer(reducer, initialState);
 
+  const { user } = useAuth();
+
   useEffect(() => {
     fetchUniqueProducts();
     fetchBestSellerProducts();
     fetchNewArrivalProducts();
+    fetchProducts();
   }, [products?.length]);
 
   useEffect(() => {
-    if (selectedId) {
-      fetchProduct(selectedId);
+    if (user) {
+      fetchAllCartItems(user.user.id);
     }
-  }, [selectedId]);
+  }, [user]);
+
+  // useEffect(() => {
+  //   if (selectedId) {
+  //     fetchProduct(selectedId);
+  //   }
+  // }, [selectedId]);
+
+  useEffect(() => {
+    fetchProductImageByPrecode(currentProduct?.product?.pre_code);
+  }, [currentProduct]);
 
   async function fetchPreDefinedSizes() {
     dispatch({ type: "loading" });
@@ -288,22 +291,22 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     }
   }
 
-  // async function fetchProducts() {
-  //   dispatch({ type: "loading" });
-  //   try {
-  //     const res = await axios.get(`${BASE_URL}/api/v1/products`);
-  //     console.log(res, "GETTING ALL PRODUCTS");
-  //     dispatch({
-  //       type: "products/loaded",
-  //       payload: res.data.data.details,
-  //     });
-  //   } catch (error) {
-  //     dispatch({
-  //       type: "rejected",
-  //       payload: "There was an error loading cities...",
-  //     });
-  //   }
-  // }
+  async function fetchProducts() {
+    dispatch({ type: "loading" });
+    try {
+      const res = await axios.get(`${BASE_URL}/api/v1/products`);
+      console.log(res, "GETTING ALL PRODUCTS");
+      dispatch({
+        type: "products/loaded",
+        payload: res.data.data.details,
+      });
+    } catch (error) {
+      dispatch({
+        type: "rejected",
+        payload: "There was an error loading cities...",
+      });
+    }
+  }
 
   async function fetchUniqueProducts() {
     dispatch({ type: "loading" });
@@ -347,31 +350,34 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     }
   }
 
-  // async function fetchProductImageByPrecode(pre_code: string) {
-  //   dispatch({ type: "loading" });
-  //   try {
-  //     const res = await axios.get(
-  //       `${BASE_URL}/api/v1/products/${pre_code}}/images`,
-  //     );
-  //     console.log(pre_code, "PRE CODE");
-  //     dispatch({
-  //       type: "image-color/loaded",
-  //       payload: res.data.data.images,
-  //     });
-  //   } catch (error) {
-  //     dispatch({
-  //       type: "rejected",
-  //       payload: "There was an error loading cities...",
-  //     });
-  //   }
-  // }
+  async function fetchProductImageByPrecode(pre_code: string) {
+    const prevPreCode = imageColors[0]?.product_code.split("-")[0];
+    if (pre_code === prevPreCode) {
+      return;
+    }
+    dispatch({ type: "loading" });
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/v1/products/${pre_code}/images`,
+      );
+      setImageColors(res.data.data.images);
+      dispatch({
+        type: "fetched",
+      });
+    } catch (error) {
+      dispatch({
+        type: "rejected",
+        payload: "There was an error loading cities...",
+      });
+    }
+  }
 
   async function fetchAllCartItems(userId: number) {
     dispatch({ type: "loading" });
     try {
       const res = await axios.get(`${BASE_URL}/api/v1/users/${userId}/carts`);
       dispatch({
-        type: "carts/loaded",
+        type: "cart/loaded",
         payload: res.data.data.userCartItems,
       });
     } catch (error) {
@@ -421,24 +427,19 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     }
   }
 
-  async function addToCart(
-    cartId: number,
-    productId: number,
-    quantityOrdered: number,
-    productSize: number,
-  ) {
-    const cartData = {
-      product_id: productId,
-      quantity_ordered: quantityOrdered,
-      product_size: productSize,
-    };
+  async function addToCart(formData) {
     dispatch({ type: "loading" });
+    const userId = user.user.id;
     try {
-      const res = await axios.post(
-        `${BASE_URL}/api/v1/carts/${cartId}`,
-        cartData,
+      await axios.post(`${BASE_URL}/api/v1/users/${userId}/carts`, formData);
+
+      const loadingCartResponse = await axios.get(
+        `${BASE_URL}/api/v1/users/${userId}/carts`,
       );
-      dispatch({ type: "cartItem/added", payload: res.data.data.cartItems });
+      dispatch({
+        type: "cart/loaded",
+        payload: loadingCartResponse.data.data.userCartItems,
+      });
 
       showToast("success", "Add to Cart successfully!");
     } catch (error) {
@@ -467,9 +468,9 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
     dispatch({ type: "cart/purchased", payload: id });
   }
 
-  function checkAllCart() {
-    dispatch({ type: "cart/purchasedAll", payload: isCheckedAll });
-  }
+  // function checkAllCart() {
+  //   dispatch({ type: "cart/purchasedAll", payload: isCheckedAll });
+  // }
 
   function addFavorite(id: string) {
     setSelectedId(id);
@@ -482,7 +483,7 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
   }
 
   function checkout() {
-    const orders = carts.filter((cart) => cart.purchased);
+    const orders = cart.filter((cart) => cart.purchased);
     orders.id = crypto.randomUUID();
     orders.status = "done";
 
@@ -495,10 +496,10 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
         products,
         uniqueProducts,
         currentProduct,
+        imageColors,
         isLoading,
         newArrivalProducts,
         bestSellerProducts,
-        setSelectedId,
         addToCart,
         decreaseCart,
         deleteCart,
@@ -506,11 +507,6 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
         addFavorite,
         deleteFavorite,
         checkCart,
-        checkAllCart,
-        isChecked,
-        setIsChecked,
-        isCheckedAll,
-        setIsCheckedAll,
         checkout,
         orders,
         query,
@@ -520,6 +516,8 @@ const ProductsProvider: React.FC<IChildrenProps> = ({ children }) => {
         fetchProduct,
         preDefinedSizes,
         categories,
+        setSelectedId,
+        cart,
       }}
     >
       {children}
